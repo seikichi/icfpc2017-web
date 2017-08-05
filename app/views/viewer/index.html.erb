@@ -1,0 +1,31 @@
+<div class="container-fluid">
+  <h1>Map Viewer</h1>
+  <fieldset>
+    <legend>Game Information</legend>
+    <div id="dropdown">
+      <select id="maps-select" class="form-control">
+      </select>
+    </div>
+  </fieldset>
+</div>
+<div class="container-fluid">
+  <fieldset>
+    <legend>Canvas</legend>
+    <div class="container-fluid" id="cy"></div>
+    <div id="loading">
+      <span class="fa fa-refresh fa-spin"></span>
+    </div>
+  </fieldset>
+</div>
+<script>
+$(function(){
+  const matches = /map=([^&#=]*)/.exec(window.location.search);
+  if (matches !== null && matches !== undefined) {
+    const param1 = matches[1];
+    loadMapList(false);
+    selectMap(param1);
+  } else {
+    loadMapList(true);
+  }
+})
+</script>

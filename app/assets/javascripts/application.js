@@ -11,4 +11,6 @@
 // about supported directives.
 //
 //= require rails-ujs
+//= require fastclick/lib/fastclick.js
+//= require cytoscape/dist/cytoscape.min.js
 //= require_tree .
