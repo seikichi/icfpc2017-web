@@ -30,6 +30,8 @@ function selectMap(url) {
   .then(function(res) {
     return res.json()
   }).then(function(json) {
+    window.currentMap = json;
+
     if (cy.elements !== undefined) {
       cy.destroy();
     }

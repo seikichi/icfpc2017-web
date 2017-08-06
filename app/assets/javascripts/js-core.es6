@@ -365,7 +365,151 @@ function renderReplayUI() {
   <li>Press Left or Right arrow</li>
   <li>PunterID = ${punterID}, punterNum = ${punterNum}</li>
   <li>Last Move: ${last}</li>
+  <li>Score: <span id="score"><button id="score-update">Calc</button></span></li>
 </ul>
 `;
   $('#replay').children().replaceWith(node);
+  $('#score-update').on('click', () => {
+    const map = new GameMap(currentMap);
+    const scores = getCurrentScores(map, moves.slice(0, currentTurn), punterNum);
+    const message = scores.map((s, i) => `<span style="color: ${punterColors[i]}">punter ${i}: ${s}</span>`).join(', ');
+    $('#score').replaceWith($(message));
+  });
+}
+
+function dfs(site, mine, punterId, map, state, visited) {
+  visited[site] = true;
+
+  let d = map.dist(mine, site);
+  let sum = d * d;
+
+  for (let e of map.graph[site]) {
+    if (visited[e.dest]) {
+      continue;
+    }
+    if (state.Claimer(e.id) !== punterId) {
+      continue;
+    }
+    sum += dfs(e.dest, mine, punterId, map, state, visited);
+  }
+  return sum;
+}
+
+function getCurrentScores(map, moves, punters) {
+  const state = new MapState();
+  for (let move of moves) {
+    state.applyMove(map, move);
+  }
+  const ret = []
+  for (let i = 0; i < punters; i++) {
+    ret.push(scorePunter(i, map, state))
+  }
+  return ret;
+}
+
+function scoreMine(mine, punterId, map, state) {
+  const visited = {};
+  return dfs(mine, mine, punterId, map, state, visited);
+}
+
+function scorePunter(punterId, map, state) {
+  let score = 0;
+  for (let site of map.sites) {
+    if (!site.isMine) {
+      continue;
+    }
+    score += scoreMine(site.id, punterId, map, state);
+  }
+  return score;
+}
+
+class MapState {
+  constructor() {
+    this.edgeToPunterId = {};
+  }
+
+  Claimer(id) {
+    return this.edgeToPunterId[id];
+  }
+
+  applyMove(map, move) {
+    if (!move.claim) { return; }
+
+    const { source, target, punter } = move.claim;
+    let src = map.siteID(source);
+    let dest = map.siteID(target);
+
+    for (let e of map.graph[src]) {
+      if (e.dest == dest) {
+        this.edgeToPunterId[e.id] = punter;
+      }
+    }
+  }
+}
+
+class GameMap {
+  constructor(map) {
+    this.map = map;
+
+    this.siteIDMap = {};
+    this.sites = [];
+    for (let i = 0; i < this.size(); i++) {
+      const originalId = this.map.sites[i].id;
+      const isMine = map.mines.includes(originalId);
+      this.siteIDMap[originalId] = i;
+      this.sites.push({ id: i, originalId, isMine });
+    }
+
+    this.graph = new Array(this.size());
+    for (let i = 0; i < this.size(); i++) {
+      this.graph[i] = [];
+    }
+
+    let edgeId = 0;
+    for (let {source, target} of this.map.rivers) {
+      const src = this.siteID(source);
+      const dest = this.siteID(target);
+      this.graph[src].push({ id: edgeId, src: src, dest: dest });
+      this.graph[dest].push({ id: edgeId, src: dest, dest: src });
+      edgeId++;
+    }
+
+    this.initDists();
+  }
+
+  siteID(originalId) {
+    return this.siteIDMap[originalId];
+  }
+
+  dist(from, to) {
+    return this.dists[from][to];
+  }
+
+  size() {
+    return this.map.sites.length;
+  }
+
+  initDists() {
+    this.dists = new Array(this.size());
+    for (let i = 0; i < this.size(); i++) {
+      this.dists[i] = new Array(this.size()).fill(Infinity);
+    }
+
+    for (let i = 0; i < this.size(); i++) {
+      this.dists[i][i] = 0;
+    }
+    for (let edges of this.graph) {
+      for (let { src, dest } of edges) {
+        console.log(src, dest)
+        this.dists[src][dest] = 1;
+      }
+    }
+    for (let k = 0; k < this.size(); k++) {
+      for (let i = 0; i < this.size(); i++) {
+        for (let j = 0; j < this.size(); j++) {
+          this.dists[i][j] = Math.min(this.dists[i][j], this.dists[i][k] + this.dists[k][j]);
+        }
+      }
+    }
+  }
 }
