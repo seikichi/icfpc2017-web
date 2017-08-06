@@ -347,7 +347,7 @@ function loadReplayFile(buffer) {
   const { num_edges, num_nodes } = objects[0];
   const matches = maps.filter(m => m.num_nodes === num_nodes && m.num_edges == num_edges);
   if (matches.length !== 1) {
-    console.warning(`matches: ${JSON.strigify(matches)}`);
+    alert(`can't specify one map from num of nodes and edges: matched mapps = ${JSON.stringify(matches)}`);
     return;
   }
 
