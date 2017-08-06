@@ -1,5 +1,38 @@
 /* Globals */
 /* Graph style */
+
+// https://en.wikipedia.org/wiki/Help:Distinguishable_colors
+const originalEdgeColor = '#009';
+const punterColors = [
+  // '#FFFFFF',
+  '#F0A3FF',
+  // '#0075DC',
+  '#993F00',
+  '#4C005C',
+  // '#191919',
+  '#005C31',
+  '#2BCE48',
+  '#FFCC99',
+  '#808080',
+  '#94FFB5',
+  '#8F7C00',
+  '#9DCC00',
+  '#C20088',
+  // '#003380',
+  '#FFA405',
+  '#FFA8BB',
+  '#426600',
+  '#FF0010',
+  '#5EF1F2',
+  '#00998F',
+  '#E0FF66',
+  '#740AFF',
+  '#990000',
+  // '#FFFF80',
+  '#FFFF00',
+  '#FF5005',
+];
+
 const graphStyle = [
   {
     "selector": "node",
@@ -75,10 +108,14 @@ const graphStyle = [
     "active-bg-color": "#fff",
     "active-bg-opacity": 0.333
     }
-  }];
+  }
+];
 
 // Set of nodes which are mines
 const mineSet = new Set();
+
+// edgeToID[source][target] === edgeID
+const riverToEdgeID = {};
 
 // ID Sources
 let highestNodeID = 0;
@@ -101,7 +138,7 @@ function getFreshEdgeID() {
 function initCy( expJson, after ){
   mineSet.clear();
   const loading = document.getElementById('loading');
-  const elements = importJSON(expJson);
+  const elements = window.elements = importJSON(expJson);
 
   loading.classList.add('loaded');
 
@@ -181,11 +218,24 @@ function importJSON(ourJSON) {
     const id = getFreshEdgeID();
     const curEdge = ourJSON.rivers[i];
     const entry = {group: "edges"};
-    const data = { "id": id, "source": curEdge["source"].toString(), "target": curEdge["target"].toString()};
+    let source = curEdge["source"];
+    let target = curEdge["target"];
+    const data = { "id": id, "source": source.toString(), "target": target.toString()};
     entry["data"] = data;
     entry["selected"] = false;
     entry["classes"] = "top-center";
     elements.push(entry);
+
+    if (source > target) {
+      const tmp = source;
+      source = target;
+      target = tmp;
+    }
+
+    if (!riverToEdgeID[source]) {
+      riverToEdgeID[source] = {}
+    }
+    riverToEdgeID[source][target] = id;
   }
   return elements;
 }
@@ -228,3 +278,84 @@ function activateMines() {
   }
 }
 
+let punterID = -1;
+let punterNum = 0;
+let moves = [];
+let currentTurn = 0;
+
+function nextTurn() {
+  if (currentTurn >= moves.length) {
+    return;
+  }
+  const move = moves[currentTurn];
+  console.log(`move: ${JSON.stringify(move)}`);
+  if (move.claim) {
+    let { punter, source, target } = move.claim;
+    if (source > target) {
+      [source, target] = [target, source];
+    }
+    const id = riverToEdgeID[source][target];
+    const color = punterColors[punter];
+    cy.$id(id).css({'line-color': color});
+  }
+  currentTurn++;
+}
+
+function prevTurn() {
+  if (currentTurn <= 0) {
+    return;
+  }
+  currentTurn--;
+
+  const move = moves[currentTurn];
+  console.log(`unmove: ${JSON.stringify(move)}`);
+  if (move.claim) {
+    let { punter, source, target } = move.claim;
+    if (source > target) {
+      [source, target] = [target, source];
+    }
+    const id = riverToEdgeID[source][target];
+    const color = punterColors[punter];
+    cy.$id(id).css({'line-color': originalEdgeColor});
+  }
+}
+
+function jumpTurn(to) {
+  if (to < 0 || to > moves.length) {
+    return;
+  }
+
+  if (currentTurn > to) {
+    while (currentTurn > to) {
+      prevTurn();
+    }
+  } else {
+    while (currentTurn < to) {
+      nextTurn();
+    }
+  }
+}
+
+function loadReplayFile(buffer) {
+  const jsonl = String.fromCharCode.apply(null, new Uint8Array(buffer));
+  const objects = jsonl.split('\n').filter(s => s.length > 0).map(JSON.parse)
+  punterID = objects[0].punter;
+  punterNum = objects[0].punters;
+  moves = objects.slice(1);
+}
+
+function renderReplayUI() {
+  let last = '';
+  if (0 < currentTurn && currentTurn <= moves.length) {
+    last = JSON.stringify(moves[currentTurn - 1]);
+  }
+
+  const node = `
+<ul>
+  <li>Press Left or Right arrow</li>
+  <li>PunterID = ${punterID}, punterNum = ${punterNum}</li>
+  <li>Last Move: ${last}</li>
+</ul>
+`;
+  $('#replay').children().replaceWith(node);
+}

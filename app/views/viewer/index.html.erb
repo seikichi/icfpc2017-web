@@ -10,6 +10,13 @@
 </div>
 <div class="container-fluid">
   <fieldset>
+    <legend>Replay</legend>
+    <div id="drop-zone">Drop a replay file here</div>
+    <div id="replay"><div></div></div>
+  </fieldset>
+</div>
+<div class="container-fluid">
+  <fieldset>
     <legend>Canvas</legend>
     <div class="container-fluid" id="cy"></div>
     <div id="loading">
@@ -17,15 +24,3 @@
     </div>
   </fieldset>
 </div>
-<script>
-$(function(){
-  const matches = /map=([^&#=]*)/.exec(window.location.search);
-  if (matches !== null && matches !== undefined) {
-    const param1 = matches[1];
-    loadMapList(false);
-    selectMap(param1);
-  } else {
-    loadMapList(true);
-  }
-})
-</script>

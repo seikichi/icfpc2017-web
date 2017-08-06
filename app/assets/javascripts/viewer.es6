@@ -54,3 +54,42 @@ $(function(){
   }
 })
 
+$(function () {
+  const dropzone = $('#drop-zone');
+  dropzone.on('dragover', function (jqEvent) {
+    var event = jqEvent.originalEvent;
+    event.stopPropagation();
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  });
+
+  dropzone.on('drop', function (jqEvent) {
+    const event = jqEvent.originalEvent;
+    event.stopPropagation();
+    event.preventDefault();
+    const files = event.dataTransfer.files
+    if (files.length === 0) { return; }
+    const file = files[0];
+
+    const reader = new FileReader();
+    reader.onload = (function (theFile) {
+      return function (e) {
+        loadReplayFile(e.target.result);
+        renderReplayUI();
+      };
+    })(file);
+    reader.readAsArrayBuffer(file);
+  });
+});
+
+$(() => {
+  $(document).on('keydown', (e) => {
+    if (e.keyCode === 39) {
+      nextTurn();
+      renderReplayUI();
+    } else if (e.keyCode === 37) {
+      prevTurn();
+      renderReplayUI();
+    }
+  });
+});
