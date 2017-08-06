@@ -539,20 +539,20 @@ class GameMap {
     for (let i = 0; i < this.size(); i++) {
       this.dists[i] = new Array(this.size()).fill(Infinity);
     }
-
-    for (let i = 0; i < this.size(); i++) {
-      this.dists[i][i] = 0;
-    }
-    for (let edges of this.graph) {
-      for (let { src, dest } of edges) {
-        console.log(src, dest)
-        this.dists[src][dest] = 1;
-      }
-    }
-    for (let k = 0; k < this.size(); k++) {
-      for (let i = 0; i < this.size(); i++) {
-        for (let j = 0; j < this.size(); j++) {
-          this.dists[i][j] = Math.min(this.dists[i][j], this.dists[i][k] + this.dists[k][j]);
+    for (let start = 0; start < this.size(); start++) {
+      this.dists[start][start] = 0;
+      const que = [];
+      que.push([start, 0]);
+      while (que.length !== 0) {
+        const [from, d] = que.shift();
+        for (let edge of this.graph[from]) {
+          const to = edge.dest;
+          const nd = d + 1;
+          if (this.dists[start][to] < nd) {
+            continue;
+          }
+          this.dists[start][to] = nd;
+          que.push([to, nd]);
         }
       }
     }
