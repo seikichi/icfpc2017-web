@@ -282,6 +282,7 @@ let punterID = -1;
 let punterNum = 0;
 let moves = [];
 let currentTurn = 0;
+let gameMap = null;
 
 function nextTurn() {
   if (currentTurn >= moves.length) {
@@ -343,6 +344,7 @@ function loadReplayFile(buffer) {
   punterID = objects[0].punter;
   punterNum = objects[0].punters;
   moves = objects.slice(1);
+  gameMap = null;
 
   const { num_edges, num_nodes } = objects[0];
   const matches = maps.filter(m => m.num_nodes === num_nodes && m.num_edges == num_edges);
@@ -370,8 +372,10 @@ function renderReplayUI() {
 `;
   $('#replay').children().replaceWith(node);
   $('#score-update').on('click', () => {
-    const map = new GameMap(currentMap);
-    const scores = getCurrentScores(map, moves.slice(0, currentTurn), punterNum);
+    if (!gameMap) {
+      gameMap = new GameMap(currentMap);
+    }
+    const scores = getCurrentScores(gameMap, moves.slice(0, currentTurn), punterNum);
     const message = scores.map((s, i) => `<span style="color: ${punterColors[i]}">punter ${i}: ${s}</span>`).join(', ');
     $('#score').replaceWith($(message));
   });
