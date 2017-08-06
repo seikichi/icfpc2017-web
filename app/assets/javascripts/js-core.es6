@@ -306,6 +306,18 @@ function nextTurn() {
     const id = riverToEdgeID[source][target];
     const color = getPunterColor(punter);
     cy.$id(id).css({'line-color': color});
+  } else if (move.splurge) {
+    let { punter, route } = move.splurge;
+    for (let i = 1; i < route.length; i++) {
+      let source = route[i - 1];
+      let target = route[i];
+      if (source > target) {
+        [source, target] = [target, source];
+      }
+      const id = riverToEdgeID[source][target];
+      const color = getPunterColor(punter);
+      cy.$id(id).css({'line-color': color});
+    }
   }
   currentTurn++;
 }
@@ -325,6 +337,17 @@ function prevTurn() {
     }
     const id = riverToEdgeID[source][target];
     cy.$id(id).css({'line-color': originalEdgeColor});
+  } else if (move.splurge) {
+    let { punter, route } = move.splurge;
+    for (let i = 1; i < route.length; i++) {
+      let source = route[i - 1];
+      let target = route[i];
+      if (source > target) {
+        [source, target] = [target, source];
+      }
+      const id = riverToEdgeID[source][target];
+      cy.$id(id).css({'line-color': originalEdgeColor});
+    }
   }
 }
 
@@ -444,15 +467,26 @@ class MapState {
   }
 
   applyMove(map, move) {
-    if (!move.claim) { return; }
+    if (move.claim) {
+      const { source, target, punter } = move.claim;
+      let src = map.siteID(source);
+      let dest = map.siteID(target);
 
-    const { source, target, punter } = move.claim;
-    let src = map.siteID(source);
-    let dest = map.siteID(target);
-
-    for (let e of map.graph[src]) {
-      if (e.dest == dest) {
-        this.edgeToPunterId[e.id] = punter;
+      for (let e of map.graph[src]) {
+        if (e.dest == dest) {
+          this.edgeToPunterId[e.id] = punter;
+        }
+      }
+    } else if (move.splurge) {
+      const { punter, route } = move.splurge;
+      for (let i = 1; i < route.length; i++) {
+        let src = map.siteID(route[i - 1]);
+        let dest = map.siteID(route[i]);
+        for (let e of map.graph[src]) {
+          if (e.dest == dest) {
+            this.edgeToPunterId[e.id] = punter;
+          }
+        }
       }
     }
   }
