@@ -1,24 +1,14 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+see [seikichi/icfpc2017](https://github.com/seikichi/icfpc2017).
 
-Things you may want to cover:
+## Deploy
 
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+```
+> heroku login
+> heroku create
+> heroku buildpacks:add --index 1 heroku/nodejs
+> heroku config:add BASIC_AUTH_USERNAME="user" BASIC_AUTH_PASSWORD="password"
+> git push heroku master
+> heroku open
+```
