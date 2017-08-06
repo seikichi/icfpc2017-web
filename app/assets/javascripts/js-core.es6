@@ -3,6 +3,8 @@
 
 // https://en.wikipedia.org/wiki/Help:Distinguishable_colors
 const originalEdgeColor = '#009';
+const selfColor = '#94FFB5';
+
 const punterColors = [
   // '#FFFFFF',
   '#F0A3FF',
@@ -14,7 +16,6 @@ const punterColors = [
   '#2BCE48',
   '#FFCC99',
   '#808080',
-  '#94FFB5',
   '#8F7C00',
   '#9DCC00',
   '#C20088',
@@ -284,6 +285,13 @@ let moves = [];
 let currentTurn = 0;
 let gameMap = null;
 
+function getPunterColor(id) {
+  if (punterID === id) {
+    return selfColor;
+  }
+  return punterColors[id];
+}
+
 function nextTurn() {
   if (currentTurn >= moves.length) {
     return;
@@ -296,7 +304,7 @@ function nextTurn() {
       [source, target] = [target, source];
     }
     const id = riverToEdgeID[source][target];
-    const color = punterColors[punter];
+    const color = getPunterColor(punter);
     cy.$id(id).css({'line-color': color});
   }
   currentTurn++;
@@ -316,7 +324,6 @@ function prevTurn() {
       [source, target] = [target, source];
     }
     const id = riverToEdgeID[source][target];
-    const color = punterColors[punter];
     cy.$id(id).css({'line-color': originalEdgeColor});
   }
 }
@@ -376,7 +383,7 @@ function renderReplayUI() {
       gameMap = new GameMap(currentMap);
     }
     const scores = getCurrentScores(gameMap, moves.slice(0, currentTurn), punterNum);
-    const message = scores.map((s, i) => `<span style="color: ${punterColors[i]}">punter ${i}: ${s}</span>`).join(', ');
+    const message = scores.map((s, i) => `<span style="color: ${getPunterColor(i)}">punter ${i}: ${s}</span>`).join(', ');
     $('#score').replaceWith($(message));
   });
 }
