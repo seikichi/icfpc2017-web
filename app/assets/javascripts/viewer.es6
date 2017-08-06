@@ -4,7 +4,7 @@ function loadMapList(showFirst) {
     return res.json() })
   .then(function(json) {
     const select_elem = $("#maps-select");
-    const maps = json.maps;
+    const maps = window.maps = json.maps;
 
     for (let i = 0; i < maps.length; i++) {
       const map = maps[i];

@@ -339,9 +339,19 @@ function jumpTurn(to) {
 function loadReplayFile(buffer) {
   const jsonl = String.fromCharCode.apply(null, new Uint8Array(buffer));
   const objects = jsonl.split('\n').filter(s => s.length > 0).map(JSON.parse)
+  currentTurn = 0;
   punterID = objects[0].punter;
   punterNum = objects[0].punters;
   moves = objects.slice(1);
+
+  const { num_edges, num_nodes } = objects[0];
+  const matches = maps.filter(m => m.num_nodes === num_nodes && m.num_edges == num_edges);
+  if (matches.length !== 1) {
+    console.warning(`matches: ${JSON.strigify(matches)}`);
+    return;
+  }
+
+  selectMap(matches[0].filename);
 }
 
 function renderReplayUI() {
