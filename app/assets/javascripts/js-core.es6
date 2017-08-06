@@ -377,6 +377,14 @@ function loadReplayFile(buffer) {
   gameMap = null;
 
   const { num_edges, num_nodes } = objects[0];
+  if (moves[moves.length - 1].stop) {
+    const move = moves.pop();
+    const stop = move.stop;
+    for (let i = 0; i < stop.moves.length; i++) {
+      moves.push(stop.moves[(i + punterID) % stop.moves.length]);
+    }
+  }
+
   const matches = maps.filter(m => m.num_nodes === num_nodes && m.num_edges == num_edges);
   if (matches.length !== 1) {
     alert(`can't specify one map from num of nodes and edges: matched mapps = ${JSON.stringify(matches)}`);
